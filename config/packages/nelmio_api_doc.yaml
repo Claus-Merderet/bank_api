@@ -1,0 +1,82 @@
+nelmio_api_doc:
+    documentation:
+        info:
+            title: Bank-Swagger
+            description: API Documentation
+            version: 1.0.0
+        components:
+            securitySchemes:
+                Bearer:
+                    type: http
+                    scheme: bearer
+                    bearerFormat: JWT
+        paths:
+            /api/auth/token/login:
+                post:
+                    tags:
+                        - Authentication
+                    summary: Аутентификация
+                    description: Возвращает JWT-токен и информацию о пользователе после успешной аутентификации.
+                    requestBody:
+                        required: true
+                        content:
+                            application/json:
+                                schema:
+                                    type: object
+                                    properties:
+                                        username:
+                                            type: string
+                                            description: логин
+                                            example: goodTester
+                                        password:
+                                            type: string
+                                            description: пароль
+                                            example: somepass123
+                    responses:
+                        '200':
+                            description: Успешная авторизация
+                            content:
+                                application/json:
+                                    schema:
+                                        type: object
+                                        properties:
+                                            token:
+                                                type: string
+                                                description: JWT-токен
+                                                example:
+                                            user:
+                                                type: object
+                                                description: Информация о пользователе
+                                                properties:
+                                                    username:
+                                                        type: string
+                                                        description: роль пользователя
+                                                        example: goodTester
+                                                    role:
+                                                        type: string
+                                                        description: роль пользователя
+                                                        example: ROLE_USER
+                        '400':
+                            description: Отсутствует имя пользователя или пароль
+                            content:
+                                application/json:
+                                    schema:
+                                        type: object
+                                        properties:
+                                            error:
+                                                type: string
+                                                example: Missing username or password
+
+                        '401':
+                            description: Неверный логин/пароль
+                            content:
+                                application/json:
+                                    schema:
+                                        type: object
+                                        properties:
+                                            error:
+                                                type: string
+                                                example: Invalid credentials
+    areas:
+        path_patterns:
+            - ^/api(?!/doc$) # Accepts routes under /api except /api/doc
