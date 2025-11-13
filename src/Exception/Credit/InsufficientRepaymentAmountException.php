@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Exception\Credit;
@@ -10,6 +11,6 @@ class InsufficientRepaymentAmountException extends AppException
 {
     public function __construct($creditBalance)
     {
-        parent::__construct('The amount is not enough. Credit balance: ' . $creditBalance, Response::HTTP_UNPROCESSABLE_ENTITY);
+        parent::__construct('The amount is not enough. Credit balance: '.$creditBalance, Response::HTTP_UNPROCESSABLE_ENTITY);
     }
 }

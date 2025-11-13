@@ -18,11 +18,10 @@ class CreditRepository extends ServiceEntityRepository
     }
 
     /**
-     * Находит активный кредит по пользователю у которых баланс > 0)
+     * Находит активный кредит по пользователю у которых баланс > 0).
      *
-     * @param User $user
      * @return Credit[]|array Массив кредитов или пустой массив, если активных кредитов нет
- */
+     */
     public function findActiveCreditsByUser(User $user): array
     {
         return $this->createQueryBuilder('c')
@@ -35,9 +34,8 @@ class CreditRepository extends ServiceEntityRepository
     }
 
     /**
-     * Находит все кредиты пользователя
+     * Находит все кредиты пользователя.
      *
-     * @param User $user
      * @return Credit[]
      */
     public function findUserCredits(User $user): array

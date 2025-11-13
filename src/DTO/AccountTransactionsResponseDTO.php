@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\DTO;
@@ -10,5 +11,6 @@ class AccountTransactionsResponseDTO
         public string $number,
         public float $balance,
         public array $transactions
-    ) {}
+    ) {
+    }
 }

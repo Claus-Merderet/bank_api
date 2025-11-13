@@ -94,7 +94,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->accounts;
     }
 
-
     public function getRoles(): array
     {
         return [$this->role];
@@ -110,7 +109,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->username;
     }
 
-    public static function createUserFromRegisterRequestDTO(registerRequestDTO $registerRequestDTO, UserPasswordHasherInterface $passwordHasher): self
+    public static function createUserFromRegisterRequestDTO(RegisterRequestDTO $registerRequestDTO, UserPasswordHasherInterface $passwordHasher): self
     {
         $user = new self();
         $user->username = $registerRequestDTO->username;
@@ -119,10 +118,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
         return $user;
     }
+
     public function getAccountById(int $accountId): ?Account
     {
         return $this->accounts->filter(
-            fn(Account $account) => $account->getId() === $accountId
+            fn (Account $account) => $account->getId() === $accountId
         )->first() ?: null;
     }
 }

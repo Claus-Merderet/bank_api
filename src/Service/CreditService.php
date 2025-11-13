@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Service;
@@ -20,7 +21,6 @@ use App\Exception\Credit\InsufficientRepaymentAmountException;
 use App\Exception\Credit\RepaymentAmountExceededException;
 use App\Repository\CreditRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use Exception;
 
 readonly class CreditService
 {
@@ -28,7 +28,8 @@ readonly class CreditService
         private EntityManagerInterface $entityManager,
         private AccountService $accountService,
         private CreditRepository $creditRepository,
-    ) {}
+    ) {
+    }
 
     public function createCreditRequest(CreditRequestDTO $creditRequestDTO, User $user): array
     {
@@ -39,7 +40,7 @@ readonly class CreditService
 
         return [
             'account' => $account,
-            'credit' => $credit
+            'credit' => $credit,
         ];
     }
 
@@ -66,10 +67,9 @@ readonly class CreditService
     public function repayCredit(CreditRepayRequestDTO $creditRepayDTO, User $user): array
     {
         $credit = $this->validateRepayCredit($creditRepayDTO, $user);
-        // Выполняем погашение
         $this->entityManager->getConnection()->beginTransaction();
+
         try {
-            // Списание средств со счета
             $account = $credit->getAccount();
             $account->setBalance($account->getBalance() - $creditRepayDTO->amount);
             $credit->setBalance($credit->getBalance() + $creditRepayDTO->amount);
@@ -86,11 +86,11 @@ readonly class CreditService
 
             return [
                 'credit' => $credit,
-                'amountDeposited' => $creditRepayDTO->amount
+                'amountDeposited' => $creditRepayDTO->amount,
             ];
-
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $this->entityManager->getConnection()->rollBack();
+
             throw $e;
         }
     }
@@ -120,19 +120,18 @@ readonly class CreditService
 
         return $credit;
     }
+
     public function getUserCreditHistory(User $user): CreditHistoryResponseDTO
     {
         $credits = $this->creditRepository->findUserCredits($user);
-        $formattedCredits = array_map(function(Credit $credit) {
-            return [
-                'creditId' => $credit->getId(),
-                'accountId' => $credit->getAccount()->getId(),
-                'amount' => $credit->getAmount(),
-                'termMonths' => $credit->getTermMonths(),
-                'balance' => $credit->getBalance(),
-                'createdAt' => $credit->getCreatedAt()->format('Y-m-d H:i:s')
-            ];
-        }, $credits);
+        $formattedCredits = array_map(fn (Credit $credit) => [
+            'creditId' => $credit->getId(),
+            'accountId' => $credit->getAccount()->getId(),
+            'amount' => $credit->getAmount(),
+            'termMonths' => $credit->getTermMonths(),
+            'balance' => $credit->getBalance(),
+            'createdAt' => $credit->getCreatedAt()->format('Y-m-d H:i:s'),
+        ], $credits);
 
         return new CreditHistoryResponseDTO($user->getId(), $formattedCredits);
     }

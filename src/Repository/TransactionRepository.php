@@ -22,29 +22,29 @@ class TransactionRepository extends ServiceEntityRepository
         $conn = $this->getEntityManager()->getConnection();
 
         $sql = <<<SQL
-            SELECT
-                t.id as "transactionId",
-                CASE
-                    WHEN t.to_account_id = :accountId AND t.transaction_type = 'transfer' THEN 'transfer_in'
-                    WHEN t.from_account_id = :accountId AND t.transaction_type = 'transfer' THEN 'transfer_out'
-                    ELSE t.transaction_type
-                END as "type",
-                CASE
-                    WHEN t.from_account_id = :accountId THEN -t.amount
-                    ELSE t.amount
-                END as "amount",
-                t.from_account_id as "fromAccountId",
-                t.to_account_id as "toAccountId",
-                t.created_at as "createdAt",
-                t.credit_id as "creditId"
-            FROM transaction t
-            WHERE t.to_account_id = :accountId OR t.from_account_id = :accountId
-            ORDER BY t.created_at DESC, t.id DESC
-        SQL;
+                SELECT
+                    t.id as "transactionId",
+                    CASE
+                        WHEN t.to_account_id = :accountId AND t.transaction_type = 'transfer' THEN 'transfer_in'
+                        WHEN t.from_account_id = :accountId AND t.transaction_type = 'transfer' THEN 'transfer_out'
+                        ELSE t.transaction_type
+                    END as "type",
+                    CASE
+                        WHEN t.from_account_id = :accountId THEN -t.amount
+                        ELSE t.amount
+                    END as "amount",
+                    t.from_account_id as "fromAccountId",
+                    t.to_account_id as "toAccountId",
+                    t.created_at as "createdAt",
+                    t.credit_id as "creditId"
+                FROM transaction t
+                WHERE t.to_account_id = :accountId OR t.from_account_id = :accountId
+                ORDER BY t.created_at DESC, t.id DESC
+            SQL;
 
         $stmt = $conn->prepare($sql);
         $result = $stmt->executeQuery([
-            'accountId' => $account->getId()
+            'accountId' => $account->getId(),
         ]);
 
         return $result->fetchAllAssociative();

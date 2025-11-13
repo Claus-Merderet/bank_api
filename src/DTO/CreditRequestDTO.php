@@ -1,9 +1,9 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\DTO;
 
-use App\Exception\Credit\RepaymentAmountExceededException;
 use OpenApi\Attributes as OA;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -19,7 +19,6 @@ class CreditRequestDTO
         #[Assert\NotBlank(message: 'Account ID is required')]
         #[Assert\Positive(message: 'Account ID must be positive')]
         public int $accountId,
-
         #[OA\Property(type: 'number', format: 'float', example: 5000.00)]
         #[Assert\NotBlank(message: 'Amount is required')]
         #[Assert\Positive(message: 'Amount must be greater than 0')]
@@ -29,7 +28,6 @@ class CreditRequestDTO
             max: self::MAX_CREDIT_AMOUNT
         )]
         public float $amount,
-
         #[OA\Property(type: 'integer', example: 12)]
         #[Assert\NotBlank(message: 'Term months is required')]
         #[Assert\Range(

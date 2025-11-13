@@ -4,8 +4,6 @@ namespace App\Entity;
 
 use App\Enum\TransactionType;
 use App\Repository\TransactionRepository;
-use DateTime;
-use DateTimeInterface;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -34,14 +32,14 @@ class Transaction
     #[ORM\Column(length: 20, enumType: TransactionType::class)]
     private ?TransactionType $transactionType = null;
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
-    private DateTimeInterface $createdAt;
+    private \DateTimeInterface $createdAt;
 
     public function __construct()
     {
-        $this->createdAt = new DateTime();
+        $this->createdAt = new \DateTime();
     }
 
-    public function getCreatedAt(): DateTimeInterface
+    public function getCreatedAt(): \DateTimeInterface
     {
         return $this->createdAt;
     }
@@ -86,6 +84,7 @@ class Transaction
 
         return $this;
     }
+
     public function getCredit(): ?Credit
     {
         return $this->credit;
@@ -116,18 +115,17 @@ class Transaction
         ?Account $toAccount = null,
         ?Account $fromAccount = null,
         ?Credit $credit = null
-    ): Transaction
-    {
+    ): self {
         $transaction = new self();
         $transaction->amount = $amount;
         $transaction->transactionType = $transactionType;
-        if ($toAccount !== null){
+        if ($toAccount !== null) {
             $transaction->toAccount = $toAccount;
         }
-        if ($fromAccount !== null){
+        if ($fromAccount !== null) {
             $transaction->fromAccount = $fromAccount;
         }
-        if ($credit !== null){
+        if ($credit !== null) {
             $transaction->credit = $credit;
         }
 

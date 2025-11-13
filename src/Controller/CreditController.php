@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Controller;
@@ -6,9 +7,9 @@ namespace App\Controller;
 use App\DTO\CreditRepayRequestDTO;
 use App\DTO\CreditRequestDTO;
 use App\Entity\User;
+use App\Enum\UserRole;
 use App\Exception\AppException;
 use App\Service\CreditService;
-use Exception;
 use Nelmio\ApiDocBundle\Attribute\Security;
 use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -17,22 +18,20 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\CurrentUser;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[OA\Tag(name: 'Credit')]
 class CreditController extends AbstractController
 {
-
     public function __construct(
         private readonly CreditService $creditService,
-    )
-    {
+    ) {
     }
 
     #[OA\Post(
         description: 'Запрос на получение кредита на указанный счет. Пользователь может иметь только один активный кредит.',
         summary: 'Запрос на получение кредита',
     )]
-
     #[OA\Response(
         response: 201,
         description: 'Кредит одобрен',
@@ -42,7 +41,7 @@ class CreditController extends AbstractController
                 new OA\Property(property: 'amount', type: 'number', format: 'float', example: 5000.00),
                 new OA\Property(property: 'termMonths', type: 'integer', example: 12),
                 new OA\Property(property: 'balance', type: 'number', format: 'float', example: 5000.00),
-                new OA\Property(property: 'creditId', type: 'integer', example: 5)
+                new OA\Property(property: 'creditId', type: 'integer', example: 5),
             ]
         )
     )]
@@ -57,9 +56,9 @@ class CreditController extends AbstractController
                     enum: [
                         'Invalid credit request',
                         'Amount must be greater than 0',
-                        'Term months must be between 1 and 60'
+                        'Term months must be between 1 and 60',
                     ]
-                )
+                ),
             ]
         )
     )]
@@ -68,7 +67,7 @@ class CreditController extends AbstractController
         description: 'Уже есть активный кредит на этот или другой счет / Нет прав взять кредит',
         content: new OA\JsonContent(
             properties: [
-                new OA\Property(property: 'error', type: 'string', example: 'Only one active credit allowed per user')
+                new OA\Property(property: 'error', type: 'string', example: 'Only one active credit allowed per user'),
             ]
         )
     )]
@@ -77,7 +76,7 @@ class CreditController extends AbstractController
         description: 'Указанный id счета не найден',
         content: new OA\JsonContent(
             properties: [
-                new OA\Property(property: 'error', type: 'string', example: 'Account not found')
+                new OA\Property(property: 'error', type: 'string', example: 'Account not found'),
             ]
         )
     )]
@@ -86,22 +85,24 @@ class CreditController extends AbstractController
         description: 'Превышен лимит суммы по кредиту',
         content: new OA\JsonContent(
             properties: [
-                new OA\Property(property: 'error', type: 'string', example: 'Credit amount cannot exceed ' . CreditRequestDTO::MAX_CREDIT_AMOUNT)
+                new OA\Property(property: 'error', type: 'string', example: 'Credit amount cannot exceed '.CreditRequestDTO::MAX_CREDIT_AMOUNT),
             ]
         )
     )]
     #[Security(name: 'Bearer')]
+    #[IsGranted(UserRole::ROLE_CREDIT->name, message: 'Forbidden: ROLE_CREDIT access required', statusCode: Response::HTTP_FORBIDDEN)]
     #[Route('/api/credit/request', name: 'credit_request', methods: ['POST'])]
     public function requestCredit(
         #[MapRequestPayload(
             acceptFormat: 'json',
             validationFailedStatusCode: Response::HTTP_BAD_REQUEST,
-        )] CreditRequestDTO $creditRequestDTO,
-        #[CurrentUser] User $user
-    ): JsonResponse
-    {
+        )]
+        CreditRequestDTO $creditRequestDTO,
+        #[CurrentUser]
+        User $user
+    ): JsonResponse {
         try {
-            //TODO тут тоже переделать нормально
+            // TODO тут тоже переделать нормально
             if (in_array('ROLE_ADMIN', $user->getRoles(), true)) {
                 return new JsonResponse(['error' => 'Admins cannot request credits'], Response::HTTP_FORBIDDEN);
             }
@@ -111,13 +112,12 @@ class CreditController extends AbstractController
                 'id' => $result['account']->getId(),
                 'amount' => $result['credit']->getAmount(),
                 'termMonths' => $result['credit']->getTermMonths(),
-                'balance' => (float)$result['account']->getBalance(),
-                'creditId' => $result['credit']->getId()
+                'balance' => $result['account']->getBalance(),
+                'creditId' => $result['credit']->getId(),
             ], Response::HTTP_CREATED);
-
         } catch (AppException $e) {
             return new JsonResponse(['error' => $e->getMessage()], Response::HTTP_NOT_FOUND);
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             return new JsonResponse(['error' => 'Internal server error', 'message' => $e->getMessage()], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
@@ -133,7 +133,7 @@ class CreditController extends AbstractController
             properties: [
                 new OA\Property(property: 'creditId', type: 'integer', example: 1),
                 new OA\Property(property: 'accountId', type: 'integer', example: 1),
-                new OA\Property(property: 'amount', type: 'number', format: 'float', example: 1000.00)
+                new OA\Property(property: 'amount', type: 'number', format: 'float', example: 1000.00),
             ]
         )
     )]
@@ -143,7 +143,7 @@ class CreditController extends AbstractController
         content: new OA\JsonContent(
             properties: [
                 new OA\Property(property: 'creditId', type: 'integer', example: 1),
-                new OA\Property(property: 'amountDeposited', type: 'number', format: 'float', example: 1000.00)
+                new OA\Property(property: 'amountDeposited', type: 'number', format: 'float', example: 1000.00),
             ]
         )
     )]
@@ -160,9 +160,9 @@ class CreditController extends AbstractController
                         'Credit ID is required',
                         'Credit ID must be positive',
                         'Amount is required',
-                        'Amount must be greater than 0'
+                        'Amount must be greater than 0',
                     ]
-                )
+                ),
             ]
         )
     )]
@@ -171,7 +171,7 @@ class CreditController extends AbstractController
         description: 'Кредит не принадлежит пользователю',
         content: new OA\JsonContent(
             properties: [
-                new OA\Property(property: 'error', type: 'string', example: 'Access denied for this credit')
+                new OA\Property(property: 'error', type: 'string', example: 'Access denied for this credit'),
             ]
         )
     )]
@@ -180,7 +180,7 @@ class CreditController extends AbstractController
         description: 'Кредит не найден',
         content: new OA\JsonContent(
             properties: [
-                new OA\Property(property: 'error', type: 'string', example: 'Credit not found')
+                new OA\Property(property: 'error', type: 'string', example: 'Credit not found'),
             ]
         )
     )]
@@ -195,9 +195,9 @@ class CreditController extends AbstractController
                     enum: [
                         'Repayment amount exceeds remaining debt',
                         'The amount is not enough',
-                        'Insufficient funds. Current balance: 5000, required: 5500'
+                        'Insufficient funds. Current balance: 5000, required: 5500',
                     ]
-                )
+                ),
             ]
         )
     )]
@@ -207,10 +207,11 @@ class CreditController extends AbstractController
         #[MapRequestPayload(
             acceptFormat: 'json',
             validationFailedStatusCode: Response::HTTP_BAD_REQUEST,
-        )] CreditRepayRequestDTO $creditRepayDTO,
-        #[CurrentUser] User      $user
-    ): JsonResponse
-    {
+        )]
+        CreditRepayRequestDTO $creditRepayDTO,
+        #[CurrentUser]
+        User $user
+    ): JsonResponse {
         try {
             // TODO тут тоже переделать
             if (in_array('ROLE_ADMIN', $user->getRoles(), true)) {
@@ -221,7 +222,7 @@ class CreditController extends AbstractController
             return new JsonResponse(['creditId' => $result['credit']->getId(), 'amountDeposited' => $result['amountDeposited']], Response::HTTP_OK);
         } catch (AppException $e) {
             return new JsonResponse(['error' => $e->getMessage()], $e->getCode());
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             return new JsonResponse(['error' => 'Internal server error', 'message' => $e->getMessage()], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
@@ -246,10 +247,10 @@ class CreditController extends AbstractController
                             new OA\Property(property: 'amount', type: 'number', format: 'float', example: 50000.0),
                             new OA\Property(property: 'termMonths', type: 'integer', example: 12),
                             new OA\Property(property: 'balance', type: 'number', format: 'float', example: 25000.0),
-                            new OA\Property(property: 'createdAt', type: 'string', format: 'date-time', example: '2024-01-15 10:30:00')
+                            new OA\Property(property: 'createdAt', type: 'string', format: 'date-time', example: '2024-01-15 10:30:00'),
                         ]
                     )
-                )
+                ),
             ]
         )
     )]
@@ -258,7 +259,7 @@ class CreditController extends AbstractController
         description: 'Пользователь не авторизован',
         content: new OA\JsonContent(
             properties: [
-                new OA\Property(property: 'error', type: 'string', example: 'Access denied')
+                new OA\Property(property: 'error', type: 'string', example: 'Access denied'),
             ]
         )
     )]
@@ -267,7 +268,7 @@ class CreditController extends AbstractController
         description: 'Сервер недоступен',
         content: new OA\JsonContent(
             properties: [
-                new OA\Property(property: 'error', type: 'string', example: 'Internal server error')
+                new OA\Property(property: 'error', type: 'string', example: 'Internal server error'),
             ]
         )
     )]
@@ -280,10 +281,9 @@ class CreditController extends AbstractController
 
             return new JsonResponse([
                 'userId' => $creditHistory->userId,
-                'credits' => $creditHistory->credits
+                'credits' => $creditHistory->credits,
             ], Response::HTTP_OK);
-
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             return new JsonResponse(['error' => 'Internal server error', 'message' => $e->getMessage()], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }

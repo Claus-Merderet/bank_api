@@ -11,7 +11,6 @@ use App\Exception\Account\AccountNotFoundException;
 use App\Exception\Account\InsufficientFundsException;
 use App\Exception\User\UserAlreadyHaveMaxCountAccountException;
 use Doctrine\ORM\EntityManagerInterface;
-use Exception;
 
 readonly class AccountService
 {
@@ -19,13 +18,15 @@ readonly class AccountService
         private EntityManagerInterface $entityManager,
     ) {
     }
-    public function validateCountAccountForUser(User $user):  void
+
+    public function validateCountAccountForUser(User $user): void
     {
-         if ($this->entityManager->getRepository(Account::class)->count(['user' => $user]) >= 2) {
-             throw new UserAlreadyHaveMaxCountAccountException();
-         }
+        if ($this->entityManager->getRepository(Account::class)->count(['user' => $user]) >= 2) {
+            throw new UserAlreadyHaveMaxCountAccountException();
+        }
     }
-    public function findAccountOwnedByUser(int $accountId, User $user):  Account
+
+    public function findAccountOwnedByUser(int $accountId, User $user): Account
     {
         $toAccount = $this->entityManager->getRepository(Account::class)->findOneBy(['id' => $accountId, 'user' => $user]);
         if ($toAccount === null) {
@@ -77,11 +78,11 @@ readonly class AccountService
 
             return [
                 'fromAccount' => $fromAccount,
-                'toAccount' => $toAccount
+                'toAccount' => $toAccount,
             ];
-
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $this->entityManager->getConnection()->rollBack();
+
             throw $e;
         }
     }
@@ -101,11 +102,10 @@ readonly class AccountService
                 $this->entityManager->flush();
 
                 return $account;
-
             } catch (\Doctrine\DBAL\Exception\UniqueConstraintViolationException $e) {
-                $retryCount++;
+                ++$retryCount;
                 if ($retryCount === $maxRetries) {
-                    throw new \RuntimeException('Failed to generate unique account number after ' . $maxRetries . ' attempts');
+                    throw new \RuntimeException('Failed to generate unique account number after '.$maxRetries.' attempts');
                 }
             }
         }

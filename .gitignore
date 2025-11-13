@@ -18,4 +18,4 @@
 /.php-cs-fixer.cache
 ###< friendsofphp/php-cs-fixer ###
 /.idea/inspectionProfiles/Project_Default.xml
-/.idea/
+.idea/

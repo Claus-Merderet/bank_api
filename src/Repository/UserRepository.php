@@ -5,12 +5,7 @@ namespace App\Repository;
 use App\DTO\UserListDTO;
 use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
-use Symfony\Component\Security\Core\Exception\UnsupportedUserException;
-use Symfony\Component\Security\Core\Exception\UserNotFoundException;
-use Symfony\Component\Security\Core\User\UserInterface;
-use Symfony\Component\Security\Core\User\UserProviderInterface;
 
 /**
  * @extends ServiceEntityRepository<User>
@@ -22,13 +17,13 @@ class UserRepository extends ServiceEntityRepository
         parent::__construct($registry, User::class);
     }
 
-    public function findOneByUsername(string $username): User|null
+    public function findOneByUsername(string $username): ?User
     {
         return $this->findOneBy(['username' => $username]);
     }
 
     /**
-     * Get all users as DTO objects with selected fields
+     * Get all users as DTO objects with selected fields.
      *
      * @return UserListDTO[] Array of UserListDTO objects
      */

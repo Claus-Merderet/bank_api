@@ -29,12 +29,11 @@ RUN addgroup -g 1000 symfony && adduser -u 1000 -G symfony -s /bin/sh -D symfony
 # Рабочая директория
 WORKDIR /var/www/html
 
-# Копирование файлов проекта
+# Копируем ВЕСЬ проект сначала
 COPY . .
+
+RUN composer install --optimize-autoloader --ignore-platform-req=ext-http
 
 # Установка прав
 RUN chown -R symfony:symfony /var/www/html
 USER symfony
-
-# Установка зависимостей Symfony
-RUN composer install --no-dev --optimize-autoloader

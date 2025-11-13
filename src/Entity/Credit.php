@@ -3,8 +3,6 @@
 namespace App\Entity;
 
 use App\Repository\CreditRepository;
-use DateTime;
-use DateTimeInterface;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -29,11 +27,11 @@ class Credit
     #[ORM\Column]
     private ?float $balance = null;
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
-    private DateTimeInterface $createdAt;
+    private \DateTimeInterface $createdAt;
 
     public function __construct()
     {
-        $this->createdAt = new DateTime();
+        $this->createdAt = new \DateTime();
     }
 
     public function getId(): ?int
@@ -67,7 +65,6 @@ class Credit
 
     /**
      * Возвращает отрицательное значение!!!
-     * @return float|null
      */
     public function getBalance(): ?float
     {
@@ -97,7 +94,7 @@ class Credit
         return $this->termMonths;
     }
 
-    public function getCreatedAt(): DateTimeInterface
+    public function getCreatedAt(): \DateTimeInterface
     {
         return $this->createdAt;
     }

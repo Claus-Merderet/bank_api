@@ -18,6 +18,7 @@ readonly class UserService
         private UserPasswordHasherInterface $passwordHasher,
     ) {
     }
+
     public function registerUser(RegisterRequestDTO $registerRequestDTO): User
     {
         $user = User::createUserFromRegisterRequestDTO($registerRequestDTO, $this->passwordHasher);
@@ -26,6 +27,7 @@ readonly class UserService
 
         return $user;
     }
+
     public function validateDTO(RegisterRequestDTO $registerUserDTO): void
     {
         if ($this->userRepository->findOneByUsername($registerUserDTO->username)) {
@@ -45,5 +47,21 @@ readonly class UserService
     public function findAllUsers(): array
     {
         return $this->userRepository->findAllAsDTO();
+    }
+    public function deleteAllUsersExcept(User $currentUser): int
+    {
+        $users = $this->userRepository->findAll();
+        $deletedCount = 0;
+
+        foreach ($users as $user) {
+            if ($user->getId() !== $currentUser->getId()) {
+                $this->entityManager->remove($user);
+                $deletedCount++;
+            }
+        }
+
+        $this->entityManager->flush();
+
+        return $deletedCount;
     }
 }

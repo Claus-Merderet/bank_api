@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Exception\Account;
@@ -8,7 +9,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 class AccountNotFoundException extends AppException
 {
-    public function __construct(int $accountId, int $userId = null)
+    public function __construct(int $accountId, ?int $userId = null)
     {
         if ($userId !== null) {
             parent::__construct(sprintf('Account %d not found or does not belong to userId %d', $accountId, $userId), Response::HTTP_NOT_FOUND);

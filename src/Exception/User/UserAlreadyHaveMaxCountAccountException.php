@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Exception\User;
@@ -10,6 +11,6 @@ class UserAlreadyHaveMaxCountAccountException extends AppException
 {
     public function __construct()
     {
-        parent::__construct('User already has maximum number of accounts(2)',Response::HTTP_CONFLICT);
+        parent::__construct('User already has maximum number of accounts(2)', Response::HTTP_CONFLICT);
     }
 }

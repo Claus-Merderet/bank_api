@@ -26,10 +26,7 @@ return (new PhpCsFixer\Config())
         'phpdoc_order' => true,
         'single_line_throw' => false,
         'yoda_style' => false,
-        'native_function_invocation' => [
-            'include' => ['@compiler_optimized'],
-            'scope' => 'namespaced',
-        ],
+        'native_function_invocation' => false,
         'blank_line_before_statement' => [
             'statements' => ['return', 'throw', 'try'],
         ],

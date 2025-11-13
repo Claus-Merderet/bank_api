@@ -8,8 +8,6 @@ use App\Entity\User;
 use App\Enum\TransactionType;
 use App\Exception\AppException;
 use App\Service\AccountService;
-use Exception;
-use InvalidArgumentException;
 use Nelmio\ApiDocBundle\Attribute\Security;
 use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -26,7 +24,8 @@ class AccountController extends AbstractController
 {
     public function __construct(
         private readonly AccountService $accountService,
-    ) {}
+    ) {
+    }
 
     #[OA\Post(
         description: 'Создает новый банковский счет для текущего пользователя (максимум 2 счета)',
@@ -39,7 +38,7 @@ class AccountController extends AbstractController
             properties: [
                 new OA\Property(property: 'id', type: 'integer', example: 1),
                 new OA\Property(property: 'number', type: 'string', example: '1234567'),
-                new OA\Property(property: 'balance', type: 'number', format: 'float', example: 0.0)
+                new OA\Property(property: 'balance', type: 'number', format: 'float', example: 0.0),
             ]
         )
     )]
@@ -48,7 +47,7 @@ class AccountController extends AbstractController
         description: 'Пользователь не имеет прав создавать счет',
         content: new OA\JsonContent(
             properties: [
-                new OA\Property(property: 'error', type: 'string', example: 'Admins cannot create bank accounts')
+                new OA\Property(property: 'error', type: 'string', example: 'Admins cannot create bank accounts'),
             ]
         )
     )]
@@ -57,7 +56,7 @@ class AccountController extends AbstractController
         description: 'Пользователь уже имеет максимальное число аккаунтов (2)',
         content: new OA\JsonContent(
             properties: [
-                new OA\Property(property: 'error', type: 'string', example: 'User already has maximum number of accounts')
+                new OA\Property(property: 'error', type: 'string', example: 'User already has maximum number of accounts'),
             ]
         )
     )]
@@ -66,7 +65,7 @@ class AccountController extends AbstractController
         description: 'Сервер недоступен',
         content: new OA\JsonContent(
             properties: [
-                new OA\Property(property: 'error', type: 'string', example: 'Internal server error')
+                new OA\Property(property: 'error', type: 'string', example: 'Internal server error'),
             ]
         )
     )]
@@ -85,11 +84,11 @@ class AccountController extends AbstractController
             return new JsonResponse([
                 'id' => $account->getId(),
                 'number' => $account->getNumber(),
-                'balance' => (float) $account->getBalance()
+                'balance' => $account->getBalance(),
             ], Response::HTTP_CREATED);
         } catch (AppException $e) {
             return new JsonResponse(['error' => $e->getMessage()], $e->getCode());
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             return new JsonResponse(['error' => 'Internal server error', 'message' => $e->getMessage()], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
@@ -104,7 +103,7 @@ class AccountController extends AbstractController
             required: ['accountId', 'amount'],
             properties: [
                 new OA\Property(property: 'accountId', type: 'integer', example: 1),
-                new OA\Property(property: 'amount', type: 'number', format: 'float', example: 1000.50)
+                new OA\Property(property: 'amount', type: 'number', format: 'float', example: 1000.50),
             ]
         )
     )]
@@ -114,7 +113,7 @@ class AccountController extends AbstractController
         content: new OA\JsonContent(
             properties: [
                 new OA\Property(property: 'id', type: 'integer', example: 1),
-                new OA\Property(property: 'balance', type: 'number', format: 'float', example: 1500.75)
+                new OA\Property(property: 'balance', type: 'number', format: 'float', example: 1500.75),
             ]
         )
     )]
@@ -131,9 +130,9 @@ class AccountController extends AbstractController
                         'Amount must be greater than 0',
                         'Amount cannot exceed 1,000,000',
                         'Account accountId is required',
-                        'Account accountId must be positive'
+                        'Account accountId must be positive',
                     ]
-                )
+                ),
             ]
         )
     )]
@@ -143,7 +142,7 @@ class AccountController extends AbstractController
         content: new OA\JsonContent(
             properties: [
                 new OA\Property(property: 'error', type: 'string', example: 'JWT Token not found'),
-                new OA\Property(property: 'code', type: 'string', example: '401')
+                new OA\Property(property: 'code', type: 'string', example: '401'),
             ]
         )
     )]
@@ -161,7 +160,7 @@ class AccountController extends AbstractController
         description: 'Счет с указанным id не найден',
         content: new OA\JsonContent(
             properties: [
-                new OA\Property(property: 'error', type: 'string', example: 'Account (1) not found or does not belong to userId (24)')
+                new OA\Property(property: 'error', type: 'string', example: 'Account (1) not found or does not belong to userId (24)'),
             ]
         )
     )]
@@ -170,7 +169,7 @@ class AccountController extends AbstractController
         description: 'Сервер недоступен',
         content: new OA\JsonContent(
             properties: [
-                new OA\Property(property: 'error', type: 'string', example: 'Internal server error')
+                new OA\Property(property: 'error', type: 'string', example: 'Internal server error'),
             ]
         )
     )]
@@ -181,12 +180,13 @@ class AccountController extends AbstractController
         #[MapRequestPayload(
             acceptFormat: 'json',
             validationFailedStatusCode: Response::HTTP_BAD_REQUEST,
-        )] DepositRequestDTO $depositRequestDTO,
-        #[CurrentUser] User $user
-    ): JsonResponse
-    {
+        )]
+        DepositRequestDTO $depositRequestDTO,
+        #[CurrentUser]
+        User $user
+    ): JsonResponse {
         try {
-            //TODO переделать нормально здесь и выше и потом еще похоже ниже
+            // TODO переделать нормально здесь и выше и потом еще похоже ниже
             if (in_array('ROLE_ADMIN', $user->getRoles(), true)) {
                 return new JsonResponse(['error' => 'Admins cannot deposit'], Response::HTTP_FORBIDDEN);
             }
@@ -197,7 +197,7 @@ class AccountController extends AbstractController
             return new JsonResponse(['error' => $e->getMessage()], $e->getCode());
         } catch (AccessDeniedException $e) {
             return new JsonResponse(['error' => $e->getMessage()], $e->getCode());
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             return new JsonResponse(['error' => 'Internal server error', 'message' => $e->getMessage()], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
@@ -213,7 +213,7 @@ class AccountController extends AbstractController
             properties: [
                 new OA\Property(property: 'fromAccountId', type: 'integer', example: 1),
                 new OA\Property(property: 'toAccountId', type: 'integer', example: 2),
-                new OA\Property(property: 'amount', type: 'number', format: 'float', example: 500.75)
+                new OA\Property(property: 'amount', type: 'number', format: 'float', example: 500.75),
             ]
         )
     )]
@@ -224,7 +224,7 @@ class AccountController extends AbstractController
             properties: [
                 new OA\Property(property: 'fromAccountId', type: 'integer', example: 1),
                 new OA\Property(property: 'toAccountId', type: 'integer', example: 2),
-                new OA\Property(property: 'fromAccountIdBalance', type: 'number', format: 'float', example: 1500.75)
+                new OA\Property(property: 'fromAccountIdBalance', type: 'number', format: 'float', example: 1500.75),
             ]
         )
     )]
@@ -244,9 +244,9 @@ class AccountController extends AbstractController
                         'To account ID must be positive',
                         'Amount is required',
                         'Amount must be greater than 0',
-                        'Amount cannot exceed 1,000,000'
+                        'Amount cannot exceed 1,000,000',
                     ]
-                )
+                ),
             ]
         )
     )]
@@ -256,7 +256,7 @@ class AccountController extends AbstractController
         content: new OA\JsonContent(
             properties: [
                 new OA\Property(property: 'error', type: 'string', example: 'JWT Token not found'),
-                new OA\Property(property: 'code', type: 'string', example: '401')
+                new OA\Property(property: 'code', type: 'string', example: '401'),
             ]
         )
     )]
@@ -279,9 +279,9 @@ class AccountController extends AbstractController
                     type: 'string',
                     enum: [
                         'Account with ID 9 not found',
-                        'Account 9 not found or does not belong to userId 1'
+                        'Account 9 not found or does not belong to userId 1',
                     ]
-                )
+                ),
             ]
         )
     )]
@@ -290,7 +290,7 @@ class AccountController extends AbstractController
         description: 'Недостаточно средств или сумма перевода превышена',
         content: new OA\JsonContent(
             properties: [
-                new OA\Property(property: 'error', type: 'string', example: 'Insufficient funds. Current balance: 95.00, required: 100000.00')
+                new OA\Property(property: 'error', type: 'string', example: 'Insufficient funds. Current balance: 95.00, required: 100000.00'),
             ]
         )
     )]
@@ -299,7 +299,7 @@ class AccountController extends AbstractController
         description: 'Сервер недоступен',
         content: new OA\JsonContent(
             properties: [
-                new OA\Property(property: 'error', type: 'string', example: 'Internal server error')
+                new OA\Property(property: 'error', type: 'string', example: 'Internal server error'),
             ]
         )
     )]
@@ -309,12 +309,13 @@ class AccountController extends AbstractController
         #[MapRequestPayload(
             acceptFormat: 'json',
             validationFailedStatusCode: Response::HTTP_BAD_REQUEST,
-        )] TransferRequestDTO $transferRequestDTO,
-        #[CurrentUser] User $user
-    ): JsonResponse
-    {
+        )]
+        TransferRequestDTO $transferRequestDTO,
+        #[CurrentUser]
+        User $user
+    ): JsonResponse {
         try {
-            if (in_array('ROLE_ADMIN', $user->getRoles(), true)) {
+            if (\in_array('ROLE_ADMIN', $user->getRoles(), true)) {
                 return new JsonResponse(['error' => 'Admins cannot deposit'], Response::HTTP_FORBIDDEN);
             }
             $result = $this->accountService->transfer(
@@ -327,14 +328,13 @@ class AccountController extends AbstractController
             return new JsonResponse([
                 'fromAccountId' => $result['fromAccount']->getId(),
                 'toAccountId' => $result['toAccount']->getId(),
-                'fromAccountIdBalance' => $result['fromAccount']->getBalance()
+                'fromAccountIdBalance' => $result['fromAccount']->getBalance(),
             ], Response::HTTP_OK);
-
         } catch (AppException $e) {
             return new JsonResponse(['error' => $e->getMessage()], $e->getCode());
-        } catch (InvalidArgumentException $e) {
+        } catch (\InvalidArgumentException $e) {
             return new JsonResponse(['error' => $e->getMessage()], Response::HTTP_BAD_REQUEST);
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             return new JsonResponse(['error' => 'Internal server error', 'message' => $e->getMessage()], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
@@ -368,10 +368,10 @@ class AccountController extends AbstractController
                             new OA\Property(property: 'amount', type: 'number', format: 'float', example: 500.00),
                             new OA\Property(property: 'fromAccountId', type: 'integer', example: 58),
                             new OA\Property(property: 'toAccountId', type: 'integer', example: 87),
-                            new OA\Property(property: 'createdAt', type: 'string', example: "2025-11-09 20:58:09")
+                            new OA\Property(property: 'createdAt', type: 'string', example: '2025-11-09 20:58:09'),
                         ]
                     )
-                )
+                ),
             ]
         )
     )]
@@ -380,7 +380,7 @@ class AccountController extends AbstractController
         description: 'Неверный формат ID',
         content: new OA\JsonContent(
             properties: [
-                new OA\Property(property: 'error', type: 'string', example: 'Invalid account ID format')
+                new OA\Property(property: 'error', type: 'string', example: 'Invalid account ID format'),
             ]
         )
     )]
@@ -390,7 +390,7 @@ class AccountController extends AbstractController
         content: new OA\JsonContent(
             properties: [
                 new OA\Property(property: 'error', type: 'string', example: 'JWT Token not found'),
-                new OA\Property(property: 'code', type: 'string', example: '401')
+                new OA\Property(property: 'code', type: 'string', example: '401'),
             ]
         )
     )]
@@ -399,7 +399,7 @@ class AccountController extends AbstractController
         description: 'Аккаунт с указанным id не найден или не принадлежит пользователю',
         content: new OA\JsonContent(
             properties: [
-                new OA\Property(property: 'error', type: 'string', example: 'Account 3 not found or does not belong to userId 3')
+                new OA\Property(property: 'error', type: 'string', example: 'Account 3 not found or does not belong to userId 3'),
             ]
         )
     )]
@@ -408,7 +408,7 @@ class AccountController extends AbstractController
         description: 'Сервер недоступен',
         content: new OA\JsonContent(
             properties: [
-                new OA\Property(property: 'error', type: 'string', example: 'Internal server error')
+                new OA\Property(property: 'error', type: 'string', example: 'Internal server error'),
             ]
         )
     )]
@@ -428,14 +428,13 @@ class AccountController extends AbstractController
                 'id' => $accountTransactions->id,
                 'number' => $accountTransactions->number,
                 'balance' => $accountTransactions->balance,
-                'transactions' => $accountTransactions->transactions
+                'transactions' => $accountTransactions->transactions,
             ], Response::HTTP_OK);
-
         } catch (AppException $e) {
             return new JsonResponse(['error' => $e->getMessage()], $e->getCode());
         } catch (AccessDeniedException $e) {
             return new JsonResponse(['error' => $e->getMessage()], Response::HTTP_FORBIDDEN);
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             return new JsonResponse(['error' => 'Internal server error', 'message' => $e->getMessage()], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
