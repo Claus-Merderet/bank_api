@@ -107,7 +107,7 @@ class AdminController extends AbstractController
         try {
             $this->userService->validateDTO($registerRequestDTO);
             $user = $this->userService->registerUser($registerRequestDTO);
-            $userData = $this->serializer->serialize($user, 'json', ['groups' => 'user:create']);
+            $userData = $this->serializer->normalize($user, null, ['groups' => 'user:create']);
 
             return new JsonResponse($userData, Response::HTTP_OK);
         } catch (AppException $e) {
