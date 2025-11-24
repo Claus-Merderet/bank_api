@@ -90,7 +90,7 @@ class CreditController extends AbstractController
         )
     )]
     #[Security(name: 'Bearer')]
-    #[IsGranted(UserRole::ROLE_CREDIT->name, message: 'Forbidden: ROLE_CREDIT access required', statusCode: Response::HTTP_FORBIDDEN)]
+    #[IsGranted(UserRole::ROLE_CREDIT->value, message: 'Forbidden: ROLE_CREDIT access required', statusCode: Response::HTTP_FORBIDDEN)]
     #[Route('/api/credit/request', name: 'credit_request', methods: ['POST'])]
     public function requestCredit(
         #[MapRequestPayload(
@@ -202,6 +202,7 @@ class CreditController extends AbstractController
         )
     )]
     #[Security(name: 'Bearer')]
+    #[IsGranted(UserRole::ROLE_CREDIT->value, message: 'Forbidden: ROLE_CREDIT access required', statusCode: Response::HTTP_FORBIDDEN)]
     #[Route('/api/credit/repay', name: 'credit_repay', methods: ['POST'])]
     public function repayCredit(
         #[MapRequestPayload(
@@ -273,6 +274,7 @@ class CreditController extends AbstractController
         )
     )]
     #[Security(name: 'Bearer')]
+    #[IsGranted(UserRole::ROLE_CREDIT->value, message: 'Forbidden: ROLE_CREDIT access required', statusCode: Response::HTTP_FORBIDDEN)]
     #[Route('/api/credit/history', name: 'credit_history', methods: ['GET'])]
     public function creditHistory(#[CurrentUser] User $user): JsonResponse
     {

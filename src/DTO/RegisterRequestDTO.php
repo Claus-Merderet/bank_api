@@ -50,7 +50,7 @@ class RegisterRequestDTO
 
     #[Assert\NotBlank(message: 'Role cannot be blank')]
     #[Assert\Choice(
-        choices: ['ROLE_USER', 'ROLE_ADMIN'],
+        choices: ['ROLE_USER', 'ROLE_ADMIN', 'ROLE_CREDIT_SECRET'],
         message: 'The role must be: ROLE_USER or ROLE_ADMIN'
     )]
     public string $role;

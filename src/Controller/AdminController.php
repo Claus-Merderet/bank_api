@@ -44,7 +44,7 @@ class AdminController extends AbstractController
                 new OA\Property(
                     property: 'role',
                     type: 'string',
-                    enum: ['ROLE_USER', 'ROLE_ADMIN', 'ROLE_CREDIT'],
+                    enum: ['ROLE_USER', 'ROLE_ADMIN'],
                     example: 'ROLE_USER'
                 ),
             ]
