@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use App\DTO\RegisterRequestDTO;
 use App\Repository\UserRepository;
+use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -11,9 +12,11 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Serializer\Attribute\Groups;
+use Gedmo\Mapping\Annotation as Gedmo;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]
+#[Gedmo\SoftDeleteable(fieldName: "deletedAt", timeAware: false)]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
@@ -39,6 +42,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      */
     #[ORM\OneToMany(targetEntity: Account::class, mappedBy: 'user', orphanRemoval: true)]
     private Collection $accounts;
+    #[ORM\Column(type: 'datetime', nullable: true)]
+    private ?\DateTime $deletedAt = null;
 
     public function __construct()
     {
@@ -124,5 +129,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->accounts->filter(
             fn (Account $account) => $account->getId() === $accountId
         )->first() ?: null;
+    }
+
+    public function softDeleted(DateTime $deletedAt): self
+    {
+        $this->deletedAt = $deletedAt;
+        return $this;
     }
 }

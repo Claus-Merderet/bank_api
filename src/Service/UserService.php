@@ -37,7 +37,8 @@ readonly class UserService
 
     public function deleteUser(User $user): void
     {
-        $this->entityManager->remove($user);
+        $user->softDeleted(new \DateTime());
+        $this->entityManager->persist($user);
         $this->entityManager->flush();
     }
 
