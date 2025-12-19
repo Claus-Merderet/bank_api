@@ -56,7 +56,7 @@ readonly class UserService
 
         foreach ($users as $user) {
             if ($user->getId() !== $currentUser->getId()) {
-                $this->entityManager->remove($user);
+                $user->softDeleted(new \DateTime());
                 $deletedCount++;
             }
         }
