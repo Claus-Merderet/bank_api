@@ -1,6 +1,8 @@
+ARG TARGETPLATFORM
+ARG BUILDPLATFORM
+
 FROM php:8.4-fpm-alpine
 
-# Установка системных зависимостей
 RUN apk add --no-cache \
     git \
     curl \
@@ -11,7 +13,6 @@ RUN apk add --no-cache \
     postgresql-dev \
     libzip-dev
 
-# Установка PHP расширений
 RUN docker-php-ext-install \
     pdo_pgsql \
     pgsql \
@@ -20,7 +21,6 @@ RUN docker-php-ext-install \
     zip \
     bcmath
 
-# Установка Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 # Создание пользователя для приложения
