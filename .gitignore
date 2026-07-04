@@ -19,3 +19,5 @@
 ###< friendsofphp/php-cs-fixer ###
 /.idea/inspectionProfiles/Project_Default.xml
 .idea/
+.planning/
+.claude/
