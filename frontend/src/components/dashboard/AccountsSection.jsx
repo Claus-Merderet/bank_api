@@ -87,6 +87,7 @@ export function AccountsSection({ depAcc, setDepAcc, accCreatedMsg, onCreated, o
   })
 
   const handleAdd = () => {
+    setErrAcc(null) // до ранней ветки — как clearErr('acc') в макете (:938): новая операция формы перезаписывает свою ошибку
     // Повтор уже известного — success-тост из ЗАПИСИ РЕЕСТРА, запрос не летит (макет :938)
     const rec = known.find((a) => a.id === Number(addId))
     if (accountsStore.has(Number(addId)) && rec) {
@@ -94,7 +95,6 @@ export function AccountsSection({ depAcc, setDepAcc, accCreatedMsg, onCreated, o
       setAddId('')
       return
     }
-    setErrAcc(null)
     addMut.mutate()
   }
 
