@@ -4,6 +4,10 @@
 // (дискреция: children-вариант, не data+render — потребители сами владеют разметкой td).
 // hover и базовые td-стили — CSS-класс sb-table (children произвольны, обработчики
 // не навесить); инлайн-стили td у потребителя выигрывают у класса. Внешних бордеров нет.
+// Sticky-вариант истории (макет :402–411): опциональный проп sticky прижимает th
+// (position sticky, top 0, фон #0b0b18, padding 14px 18px — обёртку с max-height даёт
+// потребитель через style); minWidth — минимальная ширина таблицы. Дефолты прежние —
+// существующие потребители (AdminPage) не затронуты.
 
 const tableCss =
   '.sb-table td { padding: 12px 22px; border-bottom: 1px solid rgba(255,255,255,.05); }' +
@@ -24,17 +28,25 @@ function thStyle(align) {
   }
 }
 
-export function Table({ columns, style, children }) {
+// Добавка к thStyle при sticky (типографика th прежняя, паддинг плотнее — макет :406)
+const stickyTh = {
+  position: 'sticky',
+  top: 0,
+  background: '#0b0b18',
+  padding: '14px 18px',
+}
+
+export function Table({ columns, sticky = false, minWidth = '520px', style, children }) {
   return (
     <div style={{ overflowX: 'auto', ...style }}>
       <style>{tableCss}</style>
-      <table className="sb-table" style={{ width: '100%', minWidth: '520px', borderCollapse: 'collapse' }}>
+      <table className="sb-table" style={{ width: '100%', minWidth, borderCollapse: 'collapse' }}>
         <thead>
           <tr>
             {columns.map((col, i) => {
               const c = typeof col === 'string' ? { label: col } : col
               return (
-                <th key={i} style={thStyle(c.align ?? 'left')}>
+                <th key={i} style={{ ...thStyle(c.align ?? 'left'), ...(sticky ? stickyTh : null) }}>
                   {c.label}
                 </th>
               )
