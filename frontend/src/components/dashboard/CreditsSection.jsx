@@ -121,15 +121,20 @@ export function CreditsSection() {
   // Мутация погашения + backfill (RESEARCH §Pattern 3, Pitfall 2): ответ repay баланса не даёт,
   // дебетуемый счёт добираем фоновым fetchTransactions с guard has(); ошибку добора глотаем
   const repayMut = useMutation({
-    mutationFn: () =>
-      repayCredit({
-        creditId: active?.creditId,
-        accountId: repayAcc === '' ? null : Number(repayAcc),
-        amount: Number.isNaN(parseNum(repayAmount)) ? null : parseNum(repayAmount),
-      }),
-    onSuccess: (data) => {
-      push('success', 'Кредит погашён', `creditId ${data.creditId} · amountDeposited: ${data.amountDeposited}`)
+    mutationFn: async () => {
+      // Фиксируем счёт списания В МОМЕНТ mutate() (аналог TransfersSection): именно этот счёт
+      // реально дебетуется на бэкенде, и именно его добираем в onSuccess — а не текущее значение
+      // repayAcc из замыкания, которое пользователь мог сменить в полёте запроса (WR-01).
       const acc = repayAcc === '' ? null : Number(repayAcc)
+      const data = await repayCredit({
+        creditId: active?.creditId,
+        accountId: acc,
+        amount: Number.isNaN(parseNum(repayAmount)) ? null : parseNum(repayAmount),
+      })
+      return { data, acc }
+    },
+    onSuccess: ({ data, acc }) => {
+      push('success', 'Кредит погашён', `creditId ${data.creditId} · amountDeposited: ${data.amountDeposited}`)
       if (acc != null && accountsStore.has(acc)) fetchTransactions(acc).catch(() => {})
       setErrRepay(null)
       queryClient.invalidateQueries({ queryKey: ['credits'] })
@@ -251,7 +256,7 @@ export function CreditsSection() {
               >
                 <div style={{ ...sectionLabel, marginBottom: '14px' }}>Погашение</div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  <Select label="Счёт списания" value={repayAcc} onChange={(e) => setRepayAcc(e.target.value)}>
+                  <Select label="Счёт списания" value={repayAcc} disabled={busy} onChange={(e) => setRepayAcc(e.target.value)}>
                     <option value="">— выберите счёт —</option>
                     {known.map((a) => (
                       <option key={a.id} value={a.id}>{`ID ${a.id} · ${a.number} · ${money(a.balance)}`}</option>
