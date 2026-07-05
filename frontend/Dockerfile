@@ -3,7 +3,7 @@
 # Node 22-alpine is mandatory: Vite 8 requires Node 20.19+ / 22.12+ (node:18 would break).
 
 # ---- build stage ----
-FROM node:22-alpine AS build
+FROM node:22.12-alpine AS build
 WORKDIR /app
 
 # Copy manifests first so the `npm ci` layer is cached independently of src changes.
@@ -15,7 +15,7 @@ COPY . .
 RUN npm run build
 
 # ---- runtime stage ----
-FROM nginx:alpine
+FROM nginx:1.27-alpine
 
 # Static bundle only — no Node in the runtime image.
 COPY --from=build /app/dist /usr/share/nginx/html
