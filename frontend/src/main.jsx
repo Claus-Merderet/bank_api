@@ -1,6 +1,9 @@
-// Дерево провайдеров: BrowserRouter → QueryClientProvider → AuthProvider → App.
+// Дерево провайдеров: BrowserRouter → QueryClientProvider → AuthProvider → ToastProvider → App.
 // AuthProvider ОБЯЗАН быть внутри BrowserRouter — ему нужен useNavigate.
-// TanStack Query подключается уже сейчас (D-04); активное использование — фазы 2–3.
+// ToastProvider — внутри AuthProvider: тосты нужны всем страницам, включая /login.
+// Background и ProgressBar рендерятся глобально рядом с App — на всех экранах без правок App.jsx.
+// QueryClient: retry:false (ретраи маскируют живые ошибки бэкенда от тестировщиков и заставляют
+// busy мигать), refetchOnWindowFocus:false (фоновых рефетчей в макете нет).
 
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
@@ -25,15 +28,24 @@ import '@fontsource/jetbrains-mono/700.css'
 import './index.css'
 import App from './App.jsx'
 import { AuthProvider } from './auth/AuthContext.jsx'
+import { ToastProvider } from './components/ui/ToastProvider.jsx'
+import { ProgressBar } from './components/ui/ProgressBar.jsx'
+import { Background } from './components/layout/Background.jsx'
 
-const queryClient = new QueryClient()
+const queryClient = new QueryClient({
+  defaultOptions: { queries: { retry: false, refetchOnWindowFocus: false } },
+})
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <BrowserRouter>
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
-          <App />
+          <ToastProvider>
+            <Background />
+            <ProgressBar />
+            <App />
+          </ToastProvider>
         </AuthProvider>
       </QueryClientProvider>
     </BrowserRouter>

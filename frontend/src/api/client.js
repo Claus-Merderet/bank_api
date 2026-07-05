@@ -1,21 +1,29 @@
 // Единая точка HTTP всего фронтенда. Страницы НИКОГДА не ходят в HTTP напрямую.
 // В src/ только относительные пути — адрес бэкенда живёт в vite.config.js (proxy).
+// busy-счётчик (D-03): инкремент на каждый запрос, декремент при ЛЮБОМ исходе ответа —
+// полигон живёт ошибками, незакрытый busy повесил бы прогресс-бар навсегда.
 
 import axios from 'axios'
 import { getToken, clearSession } from '../auth/tokenStorage'
 import { parseApiError } from './parseApiError'
+import { busy } from './busy'
 
 export const api = axios.create({ baseURL: '/api' })
 
 api.interceptors.request.use((config) => {
+  busy.increment()
   const token = getToken()
   if (token) config.headers.Authorization = `Bearer ${token}`
   return config
 })
 
 api.interceptors.response.use(
-  (res) => res,
+  (res) => {
+    busy.decrement()
+    return res
+  },
   (err) => {
+    busy.decrement()
     const { status, data } = err.response ?? {}
     // Разлогинивать ТОЛЬКО на lexik-401 (протухший/невалидный/отсутствующий JWT):
     // {"code":401,"message":"Expired JWT Token"|"Invalid JWT Token"|"JWT Token not found"}.
