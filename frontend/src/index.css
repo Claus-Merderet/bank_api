@@ -1,1 +1,82 @@
 @import "tailwindcss";
+
+/* Дизайн-токены макета SCAM BANK (DESIGN-INTAKE §2, палитра violet-cyan — единственная).
+   @theme даёт утилиты Tailwind и CSS-переменные --color-* на :root (D-05). */
+@theme {
+  /* Акценты (палитра violet-cyan) */
+  --color-a1: #7c3aed;        /* violet-600 — базовый акцент 1 */
+  --color-a1b: #a78bfa;       /* violet-400 — светлый акцент 1 (в градиентах кнопок) */
+  --color-a2: #06b6d4;        /* cyan-500 — базовый акцент 2 */
+  --color-a2b: #22d3ee;       /* cyan-400 — светлый акцент 2 */
+
+  /* Поверхности */
+  --color-bg: #06060e;              /* фон body */
+  --color-panel: #0b0b18;           /* sticky thead, внутренность кредитной карточки */
+  --color-modal: #0d0d1a;           /* карточки модалок; тосты rgba(13,13,26,.94) */
+  --color-select-opt: #12121f;      /* фон <option> */
+  --color-autofill: #14142a;        /* фон autofill инпутов */
+
+  /* Текст */
+  --color-ink: #f2f2fa;             /* основной */
+  --color-ink-soft: #c9c9e2;        /* вторичные кнопки, hover-текст */
+  --color-ink-mute: #9b9bb4;        /* вторичный текст */
+  --color-ink-dim: #7d7d9c;         /* лейблы форм */
+  --color-ink-faint: #62627e;       /* подсказки под полями */
+  --color-ink-ghost: #565672;       /* th таблиц, футеры */
+  --color-on-accent: #070710;       /* текст на градиентных кнопках */
+  --color-placeholder: #565672;
+
+  /* Семантика */
+  --color-success: #34d399;         /* emerald-400 */
+  --color-danger: #fb7185;          /* rose-400; тёмная база rgba(244,63,94,*) = rose-500 */
+  --color-danger-soft: #fda4af;     /* rose-300 — строки ошибок, danger-градиент */
+  --color-warn: #fbbf24;            /* amber-400 (sessionExpired, роль ADMIN) */
+  --color-warn-dim: #c9a44c;        /* JSON в жёлтом алерте */
+
+  /* Шрифты */
+  --font-display: "Unbounded", system-ui, sans-serif;
+  --font-body: "Manrope", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+}
+
+/* Алиасы макета — инлайн-стили макета используют короткие имена var(--a1)/var(--a2b)
+   и color-mix() от них; переносим стили дословно, поэтому имена должны существовать. */
+:root {
+  --a1: var(--color-a1);
+  --a1b: var(--color-a1b);
+  --a2: var(--color-a2);
+  --a2b: var(--color-a2b);
+  --fxplay: running; /* animation-play-state фоновых блобов (проп bgFx макета) */
+}
+
+/* Keyframes — ВНЕ @theme: анимации применяются инлайн-стилями (без утилит animate-*),
+   а keyframes внутри @theme без утилиты tree-shak-ятся Tailwind'ом. Тела — дословно из макета. */
+@keyframes blob { 0%, 100% { transform: translate(0,0) scale(1); } 33% { transform: translate(60px,-40px) scale(1.12); } 66% { transform: translate(-50px,50px) scale(.92); } }
+@keyframes toastIn { from { opacity: 0; transform: translateX(26px) scale(.95); } to { opacity: 1; transform: none; } }
+@keyframes popIn { from { opacity: 0; transform: translateY(16px) scale(.96); } to { opacity: 1; transform: none; } }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@keyframes slide { from { transform: translateX(-110%); } to { transform: translateX(340%); } }
+
+/* Глобальные стили макета (SCAM Bank.dc.html, строки 17–39 — дословно) */
+html, body { margin: 0; padding: 0; min-height: 100%; }
+body {
+  background: #06060e;
+  color: #f2f2fa;
+  font-family: 'Manrope', system-ui, sans-serif;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+* { box-sizing: border-box; }
+input, select, button, textarea { font-family: inherit; }
+button:disabled { opacity: .55; cursor: not-allowed !important; filter: saturate(.6); }
+input::placeholder { color: #565672; }
+select option { background: #12121f; color: #f2f2fa; }
+input:-webkit-autofill, input:-webkit-autofill:hover, input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #f2f2fa;
+  -webkit-box-shadow: 0 0 0 60px #14142a inset;
+  caret-color: #f2f2fa;
+}
+::selection { background: rgba(124, 58, 237, .55); }
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,.12); border-radius: 8px; border: 2px solid #06060e; }
+::-webkit-scrollbar-track { background: transparent; }
