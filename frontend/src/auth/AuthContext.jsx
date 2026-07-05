@@ -32,13 +32,16 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     // Интерцептор client.js диспатчит auth:expired на lexik-401 (протухший/невалидный JWT)
     // и сам чистит localStorage — здесь сбрасываем state и уводим на /login (D-06)
+    // с sessionExpired-алертом; username берётся из актуальной сессии через зависимость
+    // эффекта (без stale closure), LoginPage предзаполнит им поле логина (D-11)
+    const username = session.user?.username
     const onExpired = () => {
       setSession({ token: null, user: null })
-      navigate('/login')
+      navigate('/login', { state: { sessionExpired: true, username } })
     }
     window.addEventListener('auth:expired', onExpired)
     return () => window.removeEventListener('auth:expired', onExpired)
-  }, [navigate])
+  }, [navigate, session.user])
 
   return (
     <AuthContext.Provider value={{ token: session.token, user: session.user, login, logout }}>
