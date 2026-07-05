@@ -111,11 +111,11 @@ export default function LoginPage() {
 
   const onSubmit = async ({ username, password }) => {
     setServerError(null)
+    // try сужен до HTTP-вызова: клиентские исключения после успешного ответа
+    // (auth.login, toast) не должны маскироваться под «ошибки бэкенда» в ErrorBlock
+    let data
     try {
-      const data = await login(username, password)
-      auth.login(data.token, data.user) // сохранит сессию и уведёт по роли
-      // Тост входа (макет :892) — данные из живого ответа бэкенда
-      toast('success', 'Вход выполнен', `${data.user.username} · ${data.user.role}`)
+      data = await login(username, password)
     } catch (e) {
       // e — результат parseApiError: {status, message, raw}
       if (e.status === 401 && e.raw?.error === 'Invalid credentials') {
@@ -123,7 +123,11 @@ export default function LoginPage() {
       } else {
         setServerError({ status: e.status, message: e.message })
       }
+      return
     }
+    auth.login(data.token, data.user) // сохранит сессию и уведёт по роли
+    // Тост входа (макет :892) — данные из живого ответа бэкенда
+    toast('success', 'Вход выполнен', `${data.user.username} · ${data.user.role}`)
   }
 
   // Чип заполняет оба поля и сбрасывает ошибку — форму НЕ отправляет (макет :896–898)
