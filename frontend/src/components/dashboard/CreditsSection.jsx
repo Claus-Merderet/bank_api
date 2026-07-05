@@ -96,7 +96,7 @@ export function CreditsSection() {
       requestCredit({
         accountId: crAcc === '' ? null : Number(crAcc),
         amount: Number.isNaN(parseNum(crAmount)) ? null : parseNum(crAmount),
-        termMonths: crTerm.trim() === '' ? null : Number(crTerm),
+        termMonths: Number.isNaN(parseNum(crTerm)) ? null : parseNum(crTerm),
       }),
     onSuccess: (data) => {
       push('success', 'Кредит оформлен', `creditId ${data.creditId} · +${data.amount} на счёт ID ${data.id}`)
