@@ -17,14 +17,7 @@ import { Tabs } from '../components/ui/Tabs'
 import { AccountsSection } from '../components/dashboard/AccountsSection'
 import { TransfersSection } from '../components/dashboard/TransfersSection'
 import { HistorySection } from '../components/dashboard/HistorySection'
-
-// Заголовки секций макета: mono-префикс «NN/» цвета --a2b + Unbounded-заголовок (:166)
-const sections = {
-  accounts: { num: '01/', title: 'Счета' },
-  transfers: { num: '02/', title: 'Переводы' },
-  history: { num: '03/', title: 'История операций' },
-  credits: { num: '04/', title: 'Кредиты' },
-}
+import { CreditsSection } from '../components/dashboard/CreditsSection'
 
 export default function DashboardPage() {
   const { user } = useAuth()
@@ -89,8 +82,6 @@ export default function DashboardPage() {
     setTab('history')
   }
 
-  const section = sections[tab]
-
   return (
     <div style={{ minHeight: '100vh', position: 'relative', overflowX: 'clip' }}>
       <div
@@ -124,31 +115,10 @@ export default function DashboardPage() {
             /* Предвыбор счёта — lifted histAcc (handleGoHistory с карточки) */
             <HistorySection histAcc={histAcc} setHistAcc={setHistAcc} />
           ) : (
-            /* h2-заглушка таба «Кредиты» — фаза 4; наполнение придёт со своей шапкой */
-            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap', margin: '26px 0 18px' }}>
-              <h2
-                style={{
-                  margin: 0,
-                  fontFamily: "'Unbounded', sans-serif",
-                  fontWeight: 600,
-                  fontSize: 'clamp(18px,2.2vw,23px)',
-                  letterSpacing: '.5px',
-                }}
-              >
-                <span
-                  style={{
-                    color: 'var(--a2b)',
-                    fontSize: '.68em',
-                    fontFamily: "'JetBrains Mono', monospace",
-                    fontWeight: 700,
-                    marginRight: '9px',
-                  }}
-                >
-                  {section.num}
-                </span>
-                {section.title}
-              </h2>
-            </div>
+            /* Таб «Кредиты» (фаза 4) — секция несёт свою шапку «04/ Кредиты».
+               Ветка достижима только при role === 'ROLE_CREDIT_SECRET' (таб не пушится
+               иначе, :63) → query ['credits'] монтируется только под кредитной ролью (CRED-01) */
+            <CreditsSection />
           )}
           {/* Футер под секциями (макет :269) */}
           <div
