@@ -6,7 +6,7 @@
 
 import { httpChips } from '../../config'
 
-export function ErrorBlock({ error }) {
+export function ErrorBlock({ error, style }) {
   if (!error) return null
 
   return (
@@ -18,6 +18,8 @@ export function ErrorBlock({ error }) {
         background: 'rgba(244,63,94,.09)',
         border: '1px solid rgba(244,63,94,.32)',
         animation: 'fadeUp .25s ease',
+        // style — переопределение маргинов позиций макета (errAcc фазы 3: margin 0 0 16px)
+        ...style,
       }}
     >
       {httpChips && (
