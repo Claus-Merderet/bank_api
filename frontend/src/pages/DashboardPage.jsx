@@ -5,8 +5,8 @@
 // Фаза 3: lifted state межэкранной связки (depAcc/histAcc/accCreatedMsg — CONTEXT
 // §«Межэкранная связка кабинета»), гидрация реестра счетов по user.username
 // (Pitfall 4: cleanup reset при смене юзера), prefill селектов первым известным
-// счётом (правила макета prefillFor :869–880). Секция «Счета» — AccountsSection;
-// transfers/history — планы 03-02/03-03, credits — фаза 4 (h2-заглушки).
+// счётом (правила макета prefillFor :869–880). Секция «Счета» — AccountsSection,
+// «Переводы» — TransfersSection; history — план 03-03, credits — фаза 4 (h2-заглушки).
 
 import { useEffect, useRef, useState } from 'react'
 import { useAuth } from '../auth/AuthContext'
@@ -14,6 +14,7 @@ import { accountsStore } from '../api/accountsStore'
 import { Topbar } from '../components/layout/Topbar'
 import { Tabs } from '../components/ui/Tabs'
 import { AccountsSection } from '../components/dashboard/AccountsSection'
+import { TransfersSection } from '../components/dashboard/TransfersSection'
 
 // Заголовки секций макета: mono-префикс «NN/» цвета --a2b + Unbounded-заголовок (:166)
 const sections = {
@@ -114,8 +115,11 @@ export default function DashboardPage() {
               onCreated={handleCreated}
               onGoHistory={handleGoHistory}
             />
+          ) : tab === 'transfers' ? (
+            /* Секция читает реестр сама (useAccounts) — пропсы не нужны */
+            <TransfersSection />
           ) : (
-            /* h2-заглушка ещё не реализованных табов (transfers/history — планы 03-02/03-03,
+            /* h2-заглушка ещё не реализованных табов (history — план 03-03,
                credits — фаза 4); наполнение секций придёт со своими шапками */
             <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap', margin: '26px 0 18px' }}>
               <h2
