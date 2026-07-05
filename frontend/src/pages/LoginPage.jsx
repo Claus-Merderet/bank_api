@@ -8,7 +8,7 @@
 // DESIGN-INTAKE): несуществующий юзер при реальной отправке получит живой 401.
 // Рендер ошибок — только текстом в JSX (React экранирует сам, T-01-07).
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useLocation } from 'react-router'
 import { login } from '../api/auth'
@@ -80,7 +80,20 @@ function DemoChip({ chip, onClick }) {
 
 export default function LoginPage() {
   const location = useLocation()
-  const sessionExpired = Boolean(location.state?.sessionExpired)
+  // Флаг и username фиксируются при ПЕРВОМ рендере, а history-state очищается:
+  // React Router кладёт location.state в window.history.state.usr, который браузер
+  // сохраняет при перезагрузке вкладки — без очистки алерт пережил бы F5 вопреки
+  // поведению макета (Pattern 7: state живёт в памяти и умирает при перезагрузке)
+  const [expiredState] = useState(() => ({
+    sessionExpired: Boolean(location.state?.sessionExpired),
+    username: location.state?.username ?? '',
+  }))
+  useEffect(() => {
+    if (location.state?.sessionExpired) {
+      window.history.replaceState({ ...window.history.state, usr: null }, '')
+    }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  const sessionExpired = expiredState.sessionExpired
   const {
     register,
     handleSubmit,
@@ -88,7 +101,7 @@ export default function LoginPage() {
     formState: { isSubmitting },
   } = useForm({
     // username сохраняется при возврате по sessionExpired, пароль всегда пуст (макет :900)
-    defaultValues: { username: location.state?.username ?? '', password: '' },
+    defaultValues: { username: expiredState.username, password: '' },
   })
   const [serverError, setServerError] = useState(null)
   const [showPw, setShowPw] = useState(false)
