@@ -12,15 +12,19 @@ services:
         # compose network by the frontend nginx (service DNS name `backend`).
         networks:
             - app-net
-        # Backend needs ~10s (migrations + fixtures) before nginx:4111 is ready.
-        # wget is present in the image; hitting the swagger endpoint over IPv4
-        # (nginx listens on 0.0.0.0:4111, localhost/::1 is refused) gates readiness.
+        # Backend runs migrations + fixtures on cold start, which can take a
+        # while before nginx:4111 serves. wget is present in the image; hitting
+        # the swagger endpoint over IPv4 (nginx listens on 0.0.0.0:4111,
+        # localhost/::1 is refused) gates readiness. /api/swagger was verified
+        # live to return 200 — keep this path. start_period is widened so slow
+        # migration/fixture bootstrapping never registers a false unhealthy;
+        # failures during the grace window don't count against retries.
         healthcheck:
             test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:4111/api/swagger || exit 1"]
             interval: 10s
             timeout: 5s
             retries: 10
-            start_period: 30s
+            start_period: 40s
 
     frontend:
         build: ./frontend
