@@ -15,6 +15,7 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { createUser, deleteAllUsers, deleteUser, getUsers } from '../api/admin'
+import { useAuth } from '../auth/AuthContext'
 import { useBusy } from '../hooks/useBusy'
 import { Topbar } from '../components/layout/Topbar'
 import { Tabs } from '../components/ui/Tabs'
@@ -42,6 +43,7 @@ export default function AdminPage() {
   const busy = useBusy()
   const push = useToast()
   const queryClient = useQueryClient()
+  const { user: me } = useAuth()
 
   // Контролируемые поля формы (D-12): значения уходят на бэкенд КАК ЕСТЬ
   const [username, setUsername] = useState('')
@@ -58,6 +60,11 @@ export default function AdminPage() {
   // Список пользователей (D-04): объектный синтаксис v5 (Pitfall 4)
   const usersQuery = useQuery({ queryKey: ['admin', 'users'], queryFn: getUsers })
   const users = usersQuery.data ?? []
+
+  // Счётчик модалки «Сбросить полигон?» — без текущего админа (макет :1252:
+  // delAllCount фильтрует me по id); в user из AuthContext нет id (login
+  // возвращает {username, role}), поэтому фильтр по username
+  const delAllCount = users.filter((u) => u.username !== me?.username).length
 
   // Создание (ADMN-02): тело ответа содержит хэш пароля — в тост идут только
   // username/role из отправленной формы и id из ответа (Pitfall 8)
@@ -355,7 +362,7 @@ export default function AdminPage() {
         >
           <div style={{ fontSize: '14px', color: '#c9c9e2', marginBottom: '8px' }}>
             Будут удалены{' '}
-            <span style={{ fontFamily: "'JetBrains Mono', monospace", fontWeight: 700 }}>{users.length}</span> — все
+            <span style={{ fontFamily: "'JetBrains Mono', monospace", fontWeight: 700 }}>{delAllCount}</span> — все
             пользователи, кроме вас. Операция массовая и необратимая.
           </div>
           <div style={{ fontSize: '12.5px', color: '#62627e', marginBottom: '20px', fontFamily: "'JetBrains Mono', monospace" }}>
