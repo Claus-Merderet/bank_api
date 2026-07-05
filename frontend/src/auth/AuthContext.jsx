@@ -7,6 +7,7 @@
 
 import { createContext, useContext, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router'
+import { useQueryClient } from '@tanstack/react-query'
 import { saveSession, readSession, clearSession } from './tokenStorage'
 
 const AuthContext = createContext(null)
@@ -14,6 +15,10 @@ const AuthContext = createContext(null)
 export function AuthProvider({ children }) {
   const [session, setSession] = useState(() => readSession())
   const navigate = useNavigate()
+  // AuthProvider внутри QueryClientProvider (main.jsx) — кэш react-query чистится
+  // в каждой точке выхода: данные, полученные под одним токеном, не должны
+  // отрисовываться следующей сессии (авторизационная граница)
+  const queryClient = useQueryClient()
 
   // Карта редиректов по ролям (locked decision D-07): ROLE_ADMIN → /admin, остальные → /dashboard
   const login = (token, user) => {
@@ -22,9 +27,10 @@ export function AuthProvider({ children }) {
     navigate(user.role === 'ROLE_ADMIN' ? '/admin' : '/dashboard')
   }
 
-  // AUTH-02: выход чистит сессию (token + user атомарно) и ведёт на /login
+  // AUTH-02: выход чистит сессию (token + user атомарно), кэш запросов и ведёт на /login
   const logout = () => {
     clearSession()
+    queryClient.removeQueries()
     setSession({ token: null, user: null })
     navigate('/login')
   }
@@ -36,12 +42,13 @@ export function AuthProvider({ children }) {
     // эффекта (без stale closure), LoginPage предзаполнит им поле логина (D-11)
     const username = session.user?.username
     const onExpired = () => {
+      queryClient.removeQueries()
       setSession({ token: null, user: null })
       navigate('/login', { state: { sessionExpired: true, username } })
     }
     window.addEventListener('auth:expired', onExpired)
     return () => window.removeEventListener('auth:expired', onExpired)
-  }, [navigate, session.user])
+  }, [navigate, session.user, queryClient])
 
   return (
     <AuthContext.Provider value={{ token: session.token, user: session.user, login, logout }}>
