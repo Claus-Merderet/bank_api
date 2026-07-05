@@ -21,7 +21,10 @@ const persist = () => {
 }
 
 export const accountsStore = {
-  // Гидрация при входе/смене пользователя: битый JSON или не-массив → пустой реестр
+  // Гидрация при входе/смене пользователя: битый JSON или не-массив → пустой реестр.
+  // Вход недоверенный (тестировщики правят localStorage руками) — элементы с битой
+  // формой отбрасываются поштучно, не роняя реестр: без фильтра запись вида [{"id":1}]
+  // крашит рендер (numFmt(undefined) → TypeError) без ErrorBoundary в дереве
   hydrate(username) {
     currentKey = `sb.accounts.${username}`
     try {
@@ -30,6 +33,14 @@ export const accountsStore = {
       accounts = []
     }
     if (!Array.isArray(accounts)) accounts = []
+    accounts = accounts.filter(
+      (a) =>
+        a &&
+        typeof a === 'object' &&
+        Number.isFinite(a.id) &&
+        typeof a.number === 'string' &&
+        Number.isFinite(a.balance)
+    )
     notify()
   },
   // Единая точка обновления из ответов create/deposit/transfer/GET transactions.
