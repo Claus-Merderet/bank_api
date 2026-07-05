@@ -35,6 +35,17 @@ export function AuthProvider({ children }) {
     navigate('/login')
   }
 
+  // D-11: «истечь токен» — честный клиентский сброс ОДНИМ navigate (единственная
+  // запись /login в history, «Назад» не застревает на логине без state);
+  // username уходит в state — LoginPage предзаполнит поле, пароль всегда пуст
+  const expireSession = () => {
+    const username = session.user?.username
+    clearSession()
+    queryClient.removeQueries()
+    setSession({ token: null, user: null })
+    navigate('/login', { state: { sessionExpired: true, username } })
+  }
+
   useEffect(() => {
     // Интерцептор client.js диспатчит auth:expired на lexik-401 (протухший/невалидный JWT)
     // и сам чистит localStorage — здесь сбрасываем state и уводим на /login (D-06)
@@ -51,7 +62,7 @@ export function AuthProvider({ children }) {
   }, [navigate, session.user, queryClient])
 
   return (
-    <AuthContext.Provider value={{ token: session.token, user: session.user, login, logout }}>
+    <AuthContext.Provider value={{ token: session.token, user: session.user, login, logout, expireSession }}>
       {children}
     </AuthContext.Provider>
   )

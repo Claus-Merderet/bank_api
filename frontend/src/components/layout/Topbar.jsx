@@ -1,16 +1,13 @@
 // Топбар макета (:136–153): sticky-контейнер, лого SB 38×38 + «SCAM BANK»,
 // юзер-чип (аватар-буква на градиенте, имя, роль-Badge), кнопки «истечь токен» и «Выйти».
-// «истечь токен» (D-11, честный клиентский сброс): запомнить username → clearSession() →
-// auth.logout() (сброс state контекста) → СРАЗУ navigate('/login', { state: { sessionExpired,
-// username } }) — последний navigate выигрывает; LoginPage читает этот state (макет :900).
+// «истечь токен» (D-11, честный клиентский сброс): auth.expireSession() — ОДИН navigate
+// на /login со state { sessionExpired, username }; LoginPage читает этот state (макет :900).
 // «Выйти» — просто auth.logout(), БЕЗ sessionExpired (макет :899).
 // «истечь токен» — локальная кнопка с точными стилями макета: Button secondary не подходит,
 // т.к. style-переопределения цвета/бордера перекрыли бы hover-перекраску (#fbbf24).
 
 import { useState } from 'react'
-import { useNavigate } from 'react-router'
 import { useAuth } from '../../auth/AuthContext'
-import { clearSession } from '../../auth/tokenStorage'
 import { Badge } from '../ui/Badge'
 import { Button } from '../ui/Button'
 
@@ -43,17 +40,7 @@ function ExpireButton({ onClick }) {
 }
 
 export function Topbar() {
-  const { user, logout } = useAuth()
-  const navigate = useNavigate()
-
-  // D-11: честное истечение — стереть сессию, сбросить контекст, на логин с жёлтым алертом;
-  // username сохраняется (LoginPage предзаполнит поле), пароль всегда пуст
-  const expire = () => {
-    const username = user?.username
-    clearSession()
-    logout() // чистит сессию повторно (идемпотентно), сбрасывает state, navigate('/login') без state
-    navigate('/login', { state: { sessionExpired: true, username } }) // последний navigate выигрывает
-  }
+  const { user, logout, expireSession } = useAuth()
 
   return (
     <div
@@ -145,7 +132,7 @@ export function Topbar() {
             </Badge>
           </div>
         </div>
-        <ExpireButton onClick={expire} />
+        <ExpireButton onClick={expireSession} />
         <Button variant="secondary" hoverColor="#fb7185" onClick={logout}>
           Выйти
         </Button>
