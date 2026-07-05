@@ -109,13 +109,18 @@ export function HistorySection({ histAcc, setHistAcc }) {
       {/* Ошибка запроса истории — дословно, render-fallback (паттерн AdminPage) */}
       <ErrorBlock error={txQuery.error} style={{ margin: '0 0 16px' }} />
 
-      {/* Панель трёх состояний (:400; условия макета :1235–1236) */}
+      {/* Панель состояний (:400; условия макета :1235–1236 + isPending/isError живого
+          бэкенда, которых не было в синхронной симуляции: при ошибке выше уже висит
+          ErrorBlock — «Операций пока нет» не показываем (операции неизвестны, а не
+          отсутствуют); в полёте запроса — «Загрузка…», а не ложный empty) */}
       <Card style={{ padding: 0, overflow: 'hidden' }}>
         {!histAcc ? (
           <PanelEmpty
             title="Счёт не выбран"
             hint="выберите счёт в списке выше — история запрашивается по одному счёту"
           />
+        ) : txQuery.isError ? null : txQuery.isPending ? (
+          <PanelEmpty title="Загрузка…" hint="запрашиваем историю счёта" />
         ) : rows.length === 0 ? (
           <PanelEmpty title="Операций пока нет" hint="пополните счёт или сделайте перевод" />
         ) : (
