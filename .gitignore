@@ -21,3 +21,6 @@
 .idea/
 .planning/
 .claude/
+
+# GSD / local artifacts (design mockups, requirements, API design spec) — not part of the shipped app
+/_artifacts/
