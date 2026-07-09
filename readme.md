@@ -1,75 +1,55 @@
 # Bank API Project – проект для банковской системы
 
+Монолитный образ: SPA (React/Vite) и Symfony API/swagger отдаются из одного nginx на порту **4111**. Тестировщику нужен только `docker pull` + `docker run` — без сборки фронта и без docker compose.
+
 ## Быстрый старт
-### 1. Скачать докер образ
+
+### 1. Скачать docker-образ
+
 ```bash
 docker pull clausmerderet/bank_api:latest
 ```
-### 1.2 Запустить докер контейнер
-```bash
-docker run -d -p 4111:4111 -p 5432:5432 --name bank_api clausmerderet/bank_api:latest
-```
-### 📚 Документация API: http://localhost:4111/api/swagger
 
-### 2.1 Загрузка для автотестировщиков
+### 2. Запустить контейнер
+
 ```bash
-git clone https://github.com/Claus-Merderet/bank_api
-```
-```bash
-cd bank_api
-```
-```bash
-docker compose build
-```
-```bash
-docker compose up -d
-```
-```bash
-docker compose exec php composer install --optimize-autoloader --ignore-platform-req=ext-http
-```
-### 2.2 Настройка базы данных
-```bash
-docker compose exec php sh
-php bin/console doctrine:migrations:migrate --no-interaction
-php bin/console doctrine:fixtures:load --no-interaction
+docker run -d -p 4111:4111 --name bank_api clausmerderet/bank_api:latest
 ```
 
-#### 3. Проверка работы
+Первый старт занимает ~10–15с (миграции + фикстуры). Данные эфемерны by design: при каждом старте контейнера БД пересоздаётся к сиду `admin/123456` (созданные админом пользователи исчезают после пересоздания — это ожидаемое поведение полигона).
 
-**📚 Документация API:** http://localhost/api/swagger
+### 3. Открыть в браузере
+
+- **SPA (банк):** http://localhost:4111
+- **Документация API (swagger):** http://localhost:4111/api/swagger
 
 **🔐 Тестовый доступ:**
 - **Логин:** `admin`
 - **Пароль:** `123456`
 - **Роль:** `ROLE_ADMIN`
 
-**🗄️ Доступ к базе данных:**
+Демо-пользователей (`user1` / `credit1`) создаёт админ в админке.
+
+## Доступ к базе данных (опционально)
+
+PostgreSQL внутри образа. Чтобы достучаться до БД снаружи, добавьте проброс порта:
+
+```bash
+docker run -d -p 4111:4111 -p 5432:5432 --name bank_api clausmerderet/bank_api:latest
+```
+
 - **Хост:** `localhost`
 - **Порт:** `5432`
 - **База данных:** `symfony_db`
 - **Пользователь:** `symfony`
 - **Пароль:** `password`
 
-## Запуск всего стека (Docker) — фронтенд + бэкенд
-
-Одна команда на чистой машине поднимает бэкенд-полигон и фронтенд SPA и открывает работающий банк в браузере:
+## Локальная сборка образа (для мейнтейнера)
 
 ```bash
-docker compose -f docker-compose.app.yml up --build
+git clone https://github.com/Claus-Merderet/bank_api
+cd bank_api
+docker build -t clausmerderet/bank_api:latest .
 ```
 
-Затем открыть в браузере: **http://localhost:8080**
-
-**🔐 Вход:**
-- **Логин:** `admin`
-- **Пароль:** `123456`
-- **Роль:** `ROLE_ADMIN`
-
-**Как это работает:** фронтенд собирается в multi-stage docker-образ (Vite build → nginx) и публикуется на порту `8080`. nginx фронта отдаёт SPA и проксирует `/api` на бэкенд по внутренней сети (сервис `backend:4111`) — один origin, CORS не нужен. Бэкенд-образ автономен: PostgreSQL, миграции и фикстуры (сид `admin/123456`) внутри образа; порт `4111` наружу не публикуется, поэтому стек не конфликтует с отдельно запущенным контейнером `bank_api`.
-
-**Примечания:**
-- Первый `up --build` требует интернета (pull образов `node:22-alpine`, `nginx:alpine`, `clausmerderet/bank_api:latest` + `npm ci`). В **рантайме интернет не нужен** — шрифты self-hosted в бандле.
-- **Данные эфемерны by design.** При каждом старте бэкенд-контейнера БД пересоздаётся к сиду `admin/123456` (фикстуры purge на старте). Созданные админом пользователи (например `user1`, `credit1`) исчезают после пересоздания контейнера — это ожидаемое поведение полигона.
-- Демо-пользователей (`user1` / `credit1`) создаёт админ в админке.
-- На первом старте бэкенд ~10–15с прогоняет миграции и фикстуры; healthcheck держит фронт до готовности бэкенда, поэтому 502 на первых запросах не возникает.
-
+Сборка multi-stage: node-stage собирает фронт (`npm ci` + `vite build`) в `dist`, php-fpm stage копирует его в `/var/www/frontend` и отдаёт через nginx вместе с Symfony API. Публикация образа на Docker Hub (`docker login` + `docker push`) — ручной шаг мейнтейнера.

@@ -42,7 +42,9 @@ COPY docker/nginx/default.conf /etc/nginx/http.d/default.conf
 COPY docker/supervisor/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 COPY start.sh /start.sh
-RUN chmod +x /start.sh
+# Normalize CRLF -> LF so the shebang works even when the image is built on a
+# Windows host (git autocrlf checks out start.sh with CRLF there).
+RUN sed -i 's/\r$//' /start.sh && chmod +x /start.sh
 
 WORKDIR /var/www/html
 
