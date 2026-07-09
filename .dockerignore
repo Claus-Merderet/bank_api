@@ -1,0 +1,12 @@
+# Host artifacts that must never enter the build context.
+# frontend/node_modules and frontend/dist are CRITICAL: without them the
+# `COPY frontend/ ./` in the frontend-build stage would pull host node_modules/dist
+# instead of a clean `npm ci` build.
+frontend/node_modules
+frontend/dist
+vendor
+var/cache
+var/log
+.git
+.planning
+**/.DS_Store

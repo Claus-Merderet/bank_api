@@ -1,3 +1,14 @@
+# ---- frontend build stage ----
+# Node 22.12-alpine is mandatory: Vite 8 requires Node 22.12+.
+# Manifests first so the `npm ci` layer stays cached independently of src changes.
+FROM node:22.12-alpine AS frontend-build
+WORKDIR /app
+COPY frontend/package.json frontend/package-lock.json ./
+RUN npm ci
+COPY frontend/ ./
+RUN npm run build
+
+# ---- backend runtime stage ----
 FROM php:8.4-fpm-alpine
 
 RUN apk add --no-cache \
@@ -37,6 +48,9 @@ WORKDIR /var/www/html
 
 COPY . .
 
+# Built SPA from the frontend-build stage — path must match `root /var/www/frontend` in nginx conf.
+COPY --from=frontend-build /app/dist /var/www/frontend
+
 RUN git config --global --add safe.directory /var/www/html
 
 RUN composer install --optimize-autoloader --ignore-platform-req=ext-http
@@ -53,9 +67,6 @@ RUN chown -R www-data:www-data /var/www/html/var
 
 RUN mkdir -p /run/postgresql
 RUN chown -R postgres:postgres /run/postgresql
-
-RUN sed -i 's/listen 80;/listen 4111;/g' /etc/nginx/http.d/default.conf
-RUN sed -i 's/fastcgi_pass php:9000;/fastcgi_pass 127.0.0.1:9000;/g' /etc/nginx/http.d/default.conf
 
 COPY docker/supervisor/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 COPY config/jwt/private.pem config/jwt/private.pem
